@@ -1,0 +1,87 @@
+<html>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<style>
+    .help
+    {
+        position: absolute;
+        width: 60%;
+        height: 40%;
+        background-color: white;
+        border: 5px solid deepskyblue;
+        border-radius: 50px;
+        top: 20%;
+        left:25%;
+    }
+    
+    .shade
+    {
+        background-color: rgba(190, 190, 190, 0.6);
+		top: 0;
+		left: 0;
+        width: 100%;
+        height: 100%;
+		position: absolute;
+    }
+    
+    .cls
+    {
+        background-color: deepskyblue;
+        border-radius: 5px;
+        position: relative;
+        left: 95%;
+    }
+</style>
+
+<script>
+
+window.onload = checkClose();
+
+function checkClose() {
+	var c, h, e, c, k;
+	
+	c = 0;
+	while (c != document.cookie.split(";").length) {
+		if (document.cookie.split(";")[c].indexOf("close") != -1) {
+			h = document.cookie.split(";")[c].split("=")[1];
+			if (h == "1") {
+				close();
+				
+			}
+			
+		}
+		c++;
+		
+	}
+	
+}
+
+function clos() {
+    $(".help").css("display","none");
+    $(".shade").css("display","none");
+    console.log($(".shade").css("display"));
+    
+}
+
+function remem() {
+	document.cookie = "close=1";
+	
+}
+
+</script>
+
+<body>
+<span class="main">
+	<p>ああああ</p>
+</span>
+
+<article class="shade">
+</article>
+
+<article class="help">
+    <h1 style="text-align:center">Welcome to Plug5K!</h1>
+	<button onClick="clos()" class="cls">X</button>
+    <p style="text-align:center;">ここヘルプのテスト画面。</p>
+	<button class="2d" style="background-color:gray;" onClick="remem()">二度と表示しない</button>
+</article>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Plug5K (α)</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+	  ul	{height: 300px; overflow: auto;}
+      body { font: 13px Helvetica, Arial; }
+      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; float: right;}
+      form { border: 0; padding: 10px; width: 90%; margin-left: auto;}
+      button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; float: right; position: relative;}
+      #messages { list-style-type: none; margin: 0; padding: 0; width: 48%; float: left; height: 700px;; border: solid 1px black}
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd) { background: #eee; }
+	  #frame {margin-left: auto; height: 400px; border: solid 1px blue; background-color: gray; float: right; left: 50%; width: 50%}
+	  #m	{width: 70%; border: 0px; margin-left: auto; float: right; padding: 10px;}
+	  #u	{width: 8%; border: 0px; float: left; padding: 10px;}
+	  #sta	{height: 0px; color: white;}
+	  #mute_but	{float: right; margin-top: auto; width: 50px; height: 25px;}
+	  table	{width: 50%; float: right; height: 300px; border: solid 2px black; padding-top: 5px;}
+	  .cont	{width: 100px; height: 20px; padding: 2px; margin-right: 5px;}
+	  table	{border: solid 3px black;}
+	  .playlist_left	{position: relative;}
+    </style>
+	
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="push.js"></script>
+	<script src="jquery-3.js"></script>
+	
+	<script>
+	$(function () {
+		//ソケットの展開
+		var socket = io();
+		var window_active = "True";
+		var muteS = "False";
+		
+		function noti(msg) {
+			Push.create("Plug5k", {
+				body: msg,
+				timeout: 4000,
+				onClick: function () {
+				window.focus();
+				this.close();
+				
+				}
+				
+			});
+			
+		}
+		
+		function muteP() {
+			console.log("Mute関数");
+			
+			if (mute == "True") {
+				var muteS = "False";
+				document.getElementById("mute_but").innerHTML = ("<input type=\"Button\" value=\"通知: OFF\" onclick=\"muteP()\">");
+				
+			} else {
+				var muteS = "True";
+				document.getElementById("mute_but").innerHTML = ("<input type=\"Button\" value=\"通知: ON\" onclick=\"muteP()\">");
+				
+			}
+			
+		}
+		
+		$('form').submit(function(){
+			//ユーザ名の取得
+			var namae = $("#u").val();
+			
+			//入力欄の取得
+			var messe = (namae + ": " + $('#m').val());
+			
+			//入力したものがYouTubeもURLかどうかを判別
+			var urlcheck = messe.indexOf("https://www.youtube.com/watch?");
+			
+			//入力したものがYouTubeのURLだったかどうか
+			if (urlcheck == -1) {
+				//そうでなければ普通にメッセージとして送信
+				socket.emit('chat message', messe);
+				$('#m').val('');
+				return false;
+				
+			} else {
+				//そうであればURLのIDの部分だけを抽出して送信
+				var url_sp = messe.split("=");
+				var url_sp2 = url_sp[1];
+				var url_sp3 = url_sp2.split("&");
+				
+				var messe = url_sp3[0];
+				console.log(messe);
+				
+				socket.emit('sendurl', messe);
+				$('#m').val('');
+				return false;
+				
+			}
+			
+		});
+		
+		//フォーカスされたときに入力中という状態を更新するための部分。
+		$("#m")
+				.focusin(function() {
+			var user = $("#u").val();
+			var stat = (user + "が入力中");
+			socket.emit("statin", stat);
+			
+		})
+		
+				.focusout(function(){
+			socket.emit("statin_clear");
+			
+		});
+		
+		//メッセージを受信、出力をする部分。
+		socket.on('receive_messe', function(msg){
+			$('#messages').append($('<li>').text(msg));
+			
+			if (muteS == "True") {
+				noti(msg);
+				
+			}
+			
+		});
+		
+		//YouTubeの動画を埋め込む部分
+		socket.on("receive", function(url){
+			document.getElementById("frame").innerHTML = ("<iframe width=\"100%\" height=\"100%\" src=\"http://fmt.educdn.com/vs.php?id=" + url + "\"></iframe>");
+			console.log("inserted");
+			
+		});
+		
+		//誰かが入力中のときに「~が入力中」と出力する部分。
+		socket.on("statout", function(typing){
+			document.getElementById("sta").innerHTML = (typing);
+		
+		});
+		
+		//だれだれが書き込み中と出力する部分。
+		socket.on("statout_clear", function(){
+			document.getElementById("sta").innerHTML = ("");
+			
+		});
+		
+	});
+	
+	</script>
+	
+  </head>
+  
+  <body>
+	<div id="frame"></div>
+  
+    <ul id="messages"></ul>
+	
+	<table>
+	<tr> <p class="playlist_left">PlayList</p><button class="cont">Previous</button> <button class="cont">Next</button> </tr>
+	<td id="playlist"></td>
+	</table>
+	
+    <form action="">
+      <input id="u" value="名無し"><div id="sta"></div><input id="m" autocomplete="off"><button>Send</button> 
+    </form>
+	<!--<input id="mute_but" value="通知: ON" onclick="muteP();" type="Button">-->
+	
+  
+  
+</body></html>

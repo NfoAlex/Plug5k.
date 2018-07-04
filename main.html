@@ -1,0 +1,239 @@
+﻿<!DOCTYPE html>
+<!-- 
+
+Plug5k.
+version: beta 18
+
+Made by: Alex.nfo
+
+-->
+<html><head>
+	
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/pbkdf2.js"></script>
+	<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/push.js/0.0.11/push.min.js"></script>-->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/push.js/1.0.5/push.min.js"></script>
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+	<noscript style="position:absolute; background-color:white; border:solid 3px gray;top:25%; font-size:200%; color:red;left:45%; z-index:1;">
+	このサービスはJavascriptで稼働しています。Javascriptを有効化して再アクセスしてください。</noscript>
+	
+	<script src="/socket.io/socket.io.js"></script>
+	<link rel="shortcut icon" href="https://dotup.org/uploda/dotup.org1552018.ico">
+	<meta http-equiv="content-type" content="text/html" charset="UTF-8">
+	<meta name="author" content="Alex.nfo">
+    <title>Plug5K (β:18)</title>
+    <style>
+	  html { overflow: hidden;}
+	  ul	{height: 300px;}
+      body { font: 13px Helvetica, Arial; overflor: hidden;}
+      form { background: rgba(0, 0, 0, 0.6); position: fixed; bottom: 0; right: 0; width: 100%;}
+      form { border: 0; border-radius: 3px; padding: 10px; width: 25%; margin-left: auto;}
+	  abbr {text-decoration: none;}
+      button { width: 50px; height: 50px; background: #0099FF; border: none; padding: 10px; float: right; position: relative; border-radius: 20px;}
+      #messages { list-style-type: none; margin: 0; padding: 0; width: 25%; float: right; height: 100%; border: solid 2px black; background-color: rgba(00, 00, 00, 0.4);}
+      #messages li { padding: 5px 10px; color: rgb(200, 200, 200);}
+      #messages li:nth-child(odd) { background: rgba(150, 150, 150, 0.3); }
+	  #frame {margin-right: auto; margin-left: 40px; height: 90%; border: solid 4px #0099FF; border-radius: 1%;background-color: rgb(0, 0, 0, 0.7); width: 68.25%; float: left;}
+	  #m	{width: 70%; border: 0px; margin-left: auto; float: right; padding: 10px;}
+	  #u	{width: 13%; border: 0px; float: left; padding: 10px;}
+	  #sta	{width: 25%; height: 0px; color: white; text-align: center;}
+	  #stat {position: absolute; color: white; right: 486px; bottom: 77px; background-color: rgba(00, 00, 00, 0.4); padding: 5px; border-radius: 5px;}
+	  #tuto {position: absolute; color: white; background-color: rgba(00, 00, 00, 0.4); padding: 5px; border-radius: 5px;}
+	  table	{background-color:rgba(00, 00, 00, 0.4); margin-left: 40px;width: 68.6%; left: 50px; bottom: 10px; height: 10px; border: solid 2px black; border-radius: 1%; padding-top: 5px; overflow: auto;}
+	  #playlist {overflow:auto;}
+	  .cont	{width: 100px; height: 20px; padding: 2px; margin-right: 5px;}
+	  .playlist_left	{position: relative; text-align: center;}
+	  
+	  /* ここからヘルプ画面関連 */
+	  .help {position: relatives; width: 60%; height: 90%; background-color: white; border: 5px solid #0099FF; border-radius: 50px; margin-right: auto; margin-left: auto; margin-top: 30px;}
+	  .shade {background-color: rgba(190, 190, 190, 0.8); top: 0; left: 0; width: 100%; height: 100%; position: absolute; z-index: 10; }
+	  .logo_v {width:500px; margin-left:auto; margin-right:auto; text-align:center;}
+	  .setumei	{text-align:center;}
+	  
+	  /* ここから入力ボックスのアニメーション */
+	  .moveIn {animation-name: movein; animation-fill-mode: forwards; }
+	  
+	  @keyframes movein {
+		0% {
+			bottom: 35px;
+		}
+		
+		100% {
+			bottom: 57px;
+		}
+	  }
+    </style>
+	<script src="https://gist.githubusercontent.com/NfoAlex/24437914fb49cfef0b4fe355a34fc5ef/raw/e5337cbbbf83792044c38a30a907caafe51766db/maincript.js"></script>
+	
+  </head>
+  
+  <body>
+    <!-- ここからヘルプ画面 -->
+    <article class="shade">
+	<article class="help">
+<div class="logo_v">
+<script>
+</script>
+<!--<video id="logo_v" src="https://yzsyna.dm.files.1drv.com/y4mSuNyc7fYm1KYYx52ueHrCTOzr2-KrgRxtDkKj2Py0vb8K1elDEg19quLt_Re77-r78ZYPmWQv3q_HQUI9CTKnPM2YFQq-i1c2izVptHQAe7Su7IK-kkolTfObdigkQqn5SjkmAjQ2irE9-vdAfkKSasLlCh_n-4gsyY4wGoZTOxn3S9EnOG7v3aZqajRYkFk/logo.mp4?psid=1%3F&access_token=EwAoA61DBAAUcSSzoTJJsy%2BXrnQXgAKO5cj4yc8AATIBaZTLbrLfw3W3U76Hx3Xz0TYpc6EoM6SCBnR9qUF2bsv78928k70ZUVGMONudX8cS2Eg40HV0q7xE9ecNBZLugtxCMxygpiMcLA2CKBnatk9nLktATbZ4m4rdhClAXqNGiKBMJ6IgrTf%2Bx3yQaSridJ0tgVL%2BvAVmX1KBrtjupx6eP4mc7gvKXMKWXYMYk4OoYv7SxNw9tlbOe9rNGFf1AwfkJFdw7NWogODhnp1C0oi8p9SNYEF%2B90HYOfYSdG3GdbPUNa0KoQaTRr3zKCYFRd%2FnC%2B%2Bz5Krn1pyKkwY54qiFzg63sTTa%2FqVNBI7rmhoRNmvWSZCag0kDxjHYTJUDZgAACOvECxmLqeKz%2BAEd34CCJ0gc2baRCoWJSnPLCeFAKcQjqSpoPIOSV23mg%2BGczkeQbd1sdofsdl1HNoMB8tdykquROqjHKRLoePjA0wN2snjL1pcAPh%2BlpPIQe1P3tXitIS7eRzZW5hG6lV3NYH4D7o76Jnfca5jnysTMV3y7vfYMA%2FQctKrEQ%2B7vZT6UVWZ5bosH2R7SmaC4MCA67FXDtQGBQv3VcbOrlmZs3PzD78yFW8DRzTNm2i6MCnNBSQZSNLQHrUTKMs8caF5htNJbIo16cvH9Hqsfmte%2FsyXkqJfjOpCmHVy5DsOxEaE%2Fakg5DU8D2wMa4bnhw63BicB17ZZ9mmp9vLQblI8E7hNupHgRebpH9CGy43VJFXBvXuhZj3y%2BjjNZOdAAKP8VdJvMdSLpQpq8kpFS4QH41A%2BqDVyrbjMCIYBWLhe7f2R3QVDH%2FdWTJ3YqEBEM8DPF0Ypf97yBIDG1iOzWUBaQcE1jsNMImWSdYVgPBFL2LKrrCmPU6FC1JLbl9LEFDMJVKvk8YEPA7k9Bs70doi%2Fzh3KumBduHOI5S2nXy9EPCkcXAVOo7snDMRbMWf3lj0fFfWxkRq8ZjoEZzRQi0opcL7jtL30vpjXp6Is7kCOZD1nKNFHJB1ir81t%2Bycg6e9lnwMRGWXo4B2BhW3rV9P4RKQGH2xrLKZ0ZAg%3D%3D" width="320" height="142" frameborder="0" autoplay scrolling="no"></video></div>-->
+<!--<img src="https://i.imgur.com/4MEsUpc.png">-->
+<img src="https://i.imgur.com/bgNKvFt.png">
+<div class="setumei">
+<button style="width:50px; height:50px; border-radius:10px;" onClick="closeHelp()"><img style="float:right" src="https://image.flaticon.com/icons/svg/463/463065.svg"></button><br><br>
+<br><h2>Welcome!</h2>
+ver: beta18<br><br> <!-- ここがバージョン -->
+Plug.5Kへようこそ！<br>
+動画をみんなで見て感動を共有しよう！<br>
+※※Firefox推奨※※<br>
+・YouTubeのURLを送信することで自動的に再生するよ！<br>
+・それ以外のURLでもワンクリックでアクセスできるよ！<br>
+・楽しいよ！<br>
+
+<hr style="width:70%;"><br>
+<!-- ここからアプデ履歴 -->
+<div class="his" style="height:45%; overflow-y:scroll;">
+--- アップデート履歴 ---<br>
+#beta18# (7/3)<br>
+・他のタブにいるときにタブに"*"を付けて通知がわかるようにしたよ！(slackと同じ!)<br>
+・画面サイズの最低動作サイズを指定したよ！（これより小さいと警告されるよ サイズ：1066x638 ）<br>
+・壁紙バグがまたまたあったので修正。<br>
+・文字の色を一部修正。（見えにくかったろ）<br>
+<br>
+#beta17# (6/25)<br>
+・全体的にＵＩを変えたよ！<br>
+・メンション機能を追加！<br>
+・使い方を表示するヘルプタブを追加！<br>
+・名前を記憶するようにしたよ！<br>
+・ボタンにマウスオーバーした時画像サイズまで変わってしまうのを修正。<br>
+<br>
+#beta16# (6/12)<br>
+・やっぱりテキストボックスのシステムを戻したよ!<br>
+・通知プラグインを無効化したよ！<br>
+・URLに謎の文字とか空白が現れるのを修正。<br>
+・ログクリーナーがちゃんとした仕事をしなかったのを修正<br>
+・ブラウザウィンドウのサイズを変えたときにテキストボックスが消えるのを修正。<br>
+<br>
+#beta15# (6/10)<br>
+・テキストボックスの幅を調整したよ！<br>
+・ボタンのアニメーションを修正<br>
+・インターネット接続が確認できなかったときにエラーを飛ばすようにしたよ！<br>
+・あの同期ボタンが復活！ずれがひどい人は押しまくろう！<br>
+<br>
+#beta14# (6/8)<br>
+・メッセージの90bit暗号化技術を実装したよ！（試験機能）<br>
+・テキストボックスを開くたびにウィンドウサイズが変わらないようにしたよ！<br>
+・コンソールの文字を青くしたよ！<br>
+・アプデ履歴の表示やら日本語やらを修正<br>
+・始めるときにチャットに謎の1行が入ってしまうのを修正<br>
+<br>
+{ これも大型! } #beta13# (6/6)<br>
+・ボタンにアニメーションを追加！（戻るとき雑だけどな）<br>
+・タブにアイコンを追加！気付いて！<br>
+・タブにバージョンを表示するようにしたよ！（わかりやすいやろ）<br>
+・スタイルシートを軽量化したよ！（どうでもいい）<br>
+・デフォルトの壁紙を追加したよ！<br>
+・Adminの文字が赤くなるようにしたよ！<br>
+・他人がAdminと名乗れなくなったよ！<br>
+・通知機能を正式に実装！（一部ブラウザを除く、許可をしたブラウザー限定）<br>
+・動画の挿入、ユーザーの参加などがチャットでわかるようになったよ！<br>
+・リンクをクリックすると同じウィンドウでサイトへ飛んでしまうのを修正<br>
+・ヘルプ画面の更新履歴がずれてウィンドウから飛び出してしまうのを修正<br>
+<br>
+{ 大型！ } #beta12# (6/3)<br>
+・メッセージとプレイリストのウィンドウサイズを自動で調節してくれるようになったよ！<br>
+・ボタンを文字からアイコンにしたよ！<br>
+・チャットボックスが引っ込むようになったよ！（試験機能）<br>
+・動画の画面サイズの比率を調節したよ！<br>
+・ログクリーナーが賢くなった！（おそらくログを削除ボタンを消すかも)<br>
+・UIの色を統一したよ！<br>
+・ヘルプ画面が自動的に消えないのを修正<br>
+・「〇人がオンライン」の表示がずれるのを修正<br>
+・壁紙設定をする時に空欄のままだと初期化されるのを修正<br>
+<br>
+#beta11# (5/30)<br>
+・アップデート履歴から9が消えてたからずらしたよ...(それだけ)<br>
+<br>
+#beta10# (5/29)<br>
+・バージョンの更新があるときはヘルプ画面を表示するようにしたよ！<br>
+・安定性多少増。<br>
+<br>
+#beta9# (5/28)<br>
+・ヘルプ画面の縦幅を大きくしたよ！（画像を入れたかっただけ）<br>
+・動画のウィンドウをちょっとだけ大きくしたよ！<br>
+・再生時間の表示位置を変えたよ！（これでプレイリストも大きくなった！）<br>
+・ヘルプ画面を一度閉じた人は今後自動的に非表示になるよ！<br>
+・ヘルプ画面を見やすくしたよ！<br>
+・UIをちょっとだけかわいくしたよ！<br>
+<br>
+#beta8# (5/22)<br>
+・画面サイズによって見切れてしまったりするのを修正!<br>
+・同期ボタンを画面調整ボタンに変更したよ！<br>
+・チャットが自動的に消えるようになったよ!　（αバージョン。もしかしたら消すかも）<br>
+・通知機能（αバージョン。もしかしたら消すかも）の追加！<br>
+<br>
+#beta7# (5/15)<br>
+・流せない動画を検知してスキップをしろって言うようになったよ！<br>
+・プレイリストが他の端末で見切れてしまうのを修正<br>
+<br>
+#beta6# (5/13)<br>
+・チャットの文字制限を1~140文字までにしたよ！<br>
+・チャットのログをクリアできるようにしたよ！<br>
+・安定性がちょっと増したよ！<br>
+・流せなかった動画がスキップできなくなる現象を修正<br>
+<br>
+#beta5# (5/11)<br>
+・大量のバグ修正DAYO!（壁紙が適用されない、動画のウェイトリストが更新されない等）<br>
+・安定性がクッソ増したよ！<br>
+・遅延がひどい人のために同期ボタンを用意したよ！<br>
+・リンクを張り付けるとアクセスできるようにしたよ！<br>
+<br>
+#beta4# (5/3)<br>
+・ヘルプ画面を追加したよ！<br>
+・ちょっとだけ安定性を増したよ！<br>
+<br>
+#beta3#<br>
+・忘れたよ！<br><br>
+</div>
+<!-- ここまでアプデ履歴 -->
+
+</div>
+	</article>
+	</article>
+	
+	<!-- ここまでヘルプ画面 -->
+	
+	<div id="frame">
+	<p id="duration" style="width:10%; position:absolute; margin-right:auto; background-color:rgba(200, 200, 200, 0.5);"></p>
+	<video autoplay="" width="100%" height="100%" id="player"></video>
+	</div>
+  
+    <ul id="messages"></ul>
+	
+	<table>
+	<tr>
+	  <button class="helpB" style="margin-right:5%;" onClick="showHelp()"><img style="width:100%; height:100%" src="https://image.flaticon.com/icons/svg/771/771599.svg"></button>
+	  <button class="skipB" style="margin-right: 8px" onClick="skip_v()"><abbr title="動画をスキップするよ！（Admin限定）"><img style="width:100%; height:100%" src="https://image.flaticon.com/icons/svg/702/702134.svg"></abbr></button>
+	  <button class="backB" style="margin-right:8px;" onclick="changeBack()"><abbr title="Plug5Kの壁紙をURLで設定できるよ！"><img style="width:100%; height:100%" src="https://image.flaticon.com/icons/svg/685/685660.svg"></abbr></button>
+	  <button class="syncB" style="margin-right:8px;" onClick="sync_vAgain()"><abbr title="動画をもう一度同期するよ！"><img style="width:100%; height:100%" src="https://image.flaticon.com/icons/svg/591/591914.svg"></abbr></button>
+	  <button class="clearB" style="margin-right:8px;" onClick="remove_messe()"><abbr title="チャットの履歴を削除するよ！"><img style="width:100%; height:100%" src="https://image.flaticon.com/icons/svg/25/25991.svg"></abbr></button> 
+	</tr>
+	<td id="playlist"></td>
+	</table>
+	
+	<div id="tuto">
+	Help
+	</div>
+	
+	<div id="stat">
+	人
+	</div>
+	
+	<div id="nyuu">
+    <form action="">
+      <input style="border-radius:10px;" id="u" value="名無し">
+	  <!--<div id="sta"></div>-->
+	  <input id="m" style="border-radius:10px; margin-left: 5px;" autocomplete="off">
+	  <button style="height: 0px; width: 0px; display: none;">Send</button>
+    </form>
+	</div>
+  
+</body></html>
