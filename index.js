@@ -15,9 +15,11 @@ app.get('/', function(req, res){
 
 io.on('connection', function(socket){
   console.log('\n----------------\na user connected\n----------------\n');
+  console.log(JSON.stringify(socket.handshake.address));
+  console.log(JSON.stringify(socket.handshake.headers["user-agent"]));
+  //console.log(dat.headers.host);
   pl++;
   io.emit("sankatyuu", pl);
-  
   
   socket.on('disconnect', function(){
     console.log('\n*****************\nuser disconnected\n*****************\n');

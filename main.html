@@ -2,17 +2,17 @@
 <!-- 
 
 Plug5k.
-version: beta 18
+version: beta 20
 
 Made by: Alex.nfo
 
 -->
 <html><head>
 	
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/pbkdf2.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js" async></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/pbkdf2.js" async></script>
 	<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/push.js/0.0.11/push.min.js"></script>-->
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/push.js/1.0.5/push.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/push.js/1.0.5/push.min.js" async></script>
 	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 	<noscript style="position:absolute; background-color:white; border:solid 3px gray;top:25%; font-size:200%; color:red;left:45%; z-index:1;">
 	このサービスはJavascriptで稼働しています。Javascriptを有効化して再アクセスしてください。</noscript>
@@ -21,16 +21,16 @@ Made by: Alex.nfo
 	<link rel="shortcut icon" href="https://dotup.org/uploda/dotup.org1552018.ico">
 	<meta http-equiv="content-type" content="text/html" charset="UTF-8">
 	<meta name="author" content="Alex.nfo">
-    <title>Plug5K (β:18)</title>
+    <title>Plug5K (β:20)</title>
     <style>
 	  html { overflow: hidden;}
 	  ul	{height: 300px;}
       body { font: 13px Helvetica, Arial; overflor: hidden;}
       form { background: rgba(0, 0, 0, 0.6); position: fixed; bottom: 0; right: 0; width: 100%;}
-      form { border: 0; border-radius: 3px; padding: 10px; width: 25%; margin-left: auto;}
+      form { border: 2px black solid; border-top: none; border-radius: 3px; padding: 10px; width: 25%; margin-left: auto;}
 	  abbr {text-decoration: none;}
       button { width: 50px; height: 50px; background: #0099FF; border: none; padding: 10px; float: right; position: relative; border-radius: 20px;}
-      #messages { list-style-type: none; margin: 0; padding: 0; width: 25%; float: right; height: 100%; border: solid 2px black; background-color: rgba(00, 00, 00, 0.4);}
+      #messages { list-style-type: none; margin: 0; padding: 0; width: 25%; float: right; height: 100%; border: solid 2px black; background-color: rgba(00, 00, 00, 0.4); position: absolute; top: 0px; right: 0px;}
       #messages li { padding: 5px 10px; color: rgb(200, 200, 200);}
       #messages li:nth-child(odd) { background: rgba(150, 150, 150, 0.3); }
 	  #frame {margin-right: auto; margin-left: 40px; height: 90%; border: solid 4px #0099FF; border-radius: 1%;background-color: rgb(0, 0, 0, 0.7); width: 68.25%; float: left;}
@@ -63,7 +63,841 @@ Made by: Alex.nfo
 		}
 	  }
     </style>
-	<script src="https://gist.githubusercontent.com/NfoAlex/24437914fb49cfef0b4fe355a34fc5ef/raw/e5337cbbbf83792044c38a30a907caafe51766db/maincript.js"></script>
+	
+	<script>
+	$(".his").css("height", window.innerHeight * 0.4);
+	var socket = io();
+	var admin = 0;	//管理者権限を持ってるかどうかの変数	
+	var nowP = 0;	//今再生している動画のID
+	var loaded = 0;	//動画のロード(同期)が終わったかどうかを記録する変数
+	var allowAd = 0;//管理者権限になれるかどうかを判別する変数
+	var version = "20"; //Plug5Kのバージョン
+	var plBefore = 0;   //今いた人数を取り込む変数（比較用）
+	var default_x_p = 0, default_y_p = 0;
+	var default_x_h = 0, default_y_h = 0;
+	
+	try {
+	$(".help").html();
+	
+	if (window.innerHeight < 638 && window.innerWidth < 1066) {
+		alert("ブラウザのウィンドウサイズが最低基準を満たしていません!\n正常に動作しない場合があります！");
+		
+	}
+	}
+	catch (e) {
+	alert("スクリプトを取得できません！\nインターネットが接続されてるかチェックしてね!");
+	location.href = "about:blank";
+	}
+	
+	//いろんな初期設定（ボタンのアニメーション、入力欄の設定）
+	$(function () {
+		screenAd();
+		$(".his").css("height", window.innerHeight * 0.4);
+		
+		$("#stat").css("right",parseInt($("#messages").css("width")) + 3);
+		$("#stat").css("bottom",parseInt($("form").css("height")) + 40);
+		default_x_p = $("#stat").css("width") + 16;
+		default_y_p = $("#stat").css("height");
+		
+		$("#tuto").css("right",parseInt($("#messages").css("width")) + 3);
+		$("#tuto").css("bottom",parseInt($("form").css("height")) + 80);
+		default_x_h = $("#tuto").css("width");
+		default_y_h = $("#tuto").css("height");
+	
+		/*
+		$("form").mouseover(function (e) {
+			$("form").css("top",window.innerHeight - 57);
+			$("#m").focus();
+			//screenAd();
+		
+		})
+	
+			 .mouseout(function (e) {
+			$("form").css("top",window.innerHeight - 26);
+			$("#m").blur();
+			screenAd();
+		
+		});
+		*/
+	
+		$(window).resize(function () {
+			screenAd();
+		
+			$("#stat").css("right",parseInt($("#messages").css("width")) + 3);
+			$("#stat").css("bottom",parseInt($("form").css("height")) + 40);
+			default_x_p = $("#stat").css("width") + 16;
+			default_y_p = $("#stat").css("height");
+			
+			$("#tuto").css("right",parseInt($("#messages").css("width")) + 3);
+			$("#tuto").css("bottom",parseInt($("form").css("height")) + 80);
+			default_x_h = $("#tuto").css("width");
+			default_y_h = $("#tuto").css("height");
+			
+		});
+		
+		//ボタンのマウスオーバーでのアニメーション
+		$("button").mouseover(function (e) {
+			$("." + e.target.className).animate({width: "60px"}, 150);
+			
+		})
+				.mouseout(function (e) {
+			$("." + e.target.className).animate({width: "50px"}, 150);
+			
+		});
+		
+		$("#stat").mouseover(function (e) {
+			$("#stat").animate({
+				width: default_x_p + 20,
+				height: default_y_p + 40
+				
+			}, 200);
+			
+		})
+			
+			.mouseout(function (e) {
+				$("#stat").animate({
+					width: default_x_p,
+					height: default_y_p
+				}, 200);
+				
+		});
+	
+	});
+	
+	//入っていた人に更新を通知する関数
+	function notiU() {socket.emit('update');}
+	
+	
+	//ブラウザのクッキーから壁紙情報を書き出す
+	function checkBack() {
+		
+		/*
+		$("form").css("top",window.innerHeight - 26);
+		$("form").css("position","absolute");
+		*/
+	
+		var b, a, c, k;
+		
+		b = document.cookie.split(";"); //クッキーを;でスプリットしたリスト
+		c = 0; //リストを周回するようの変数
+		
+		
+		try {
+		while (b.length >= c) {
+			if (b[c].indexOf("http") != -1) {
+				a = b[c].split("=")[1];
+				break;
+				
+			}
+			
+			c++;
+			
+		}
+		}
+		
+		//壁紙のデータがなかったときに出力
+		catch (e) {
+		a =""; //商用利用ではない
+		console.log("data established");
+
+		}
+		
+		//ヘルプ画面を表示するための部分
+		var h, e, l, p;
+		h = document.cookie.split(";");
+		
+		e = 0;
+		while (h.length >= e) {
+			if (h[e].indexOf("help") != -1) {
+				l = h[e].split("=")[1];
+				break;
+				
+			}
+			
+			e++;
+			
+		}
+		
+		//バージョンが新しくなっていたらヘルプを表示するようにする部分
+		var v, e2, r;
+		v = document.cookie.split(";");
+		
+		e2 = 0;
+		while (v.length >= e2) {
+			if (v[e2].indexOf("ver") != -1) {
+				r = v[e2].split("=")[1];
+				break;
+				
+			}
+			
+			e2++;
+			
+		}
+		
+		var n, a2, m, e3;
+		n = document.cookie.split(";");
+		m = ("名無し");
+		
+		a2 = 0;
+		try{
+		while (n.length >= a2) {
+			if (n[a2].indexOf("name") != -1) {
+				m = n[a2].split("=")[1];
+				break;
+				
+			}
+			
+			a2++;
+				
+		}
+		}
+		catch(e) {
+		document.cookie += ("name=名無し");
+		m = "名無し";
+		}
+		
+		if (l == "1" && r == version) {
+			$(".shade").css("display","none");
+			
+		} else if (l == 0) {
+			$(".shade").css("display","inherit");
+			
+		}
+		
+		//ここで壁紙を変更
+		$("body").css("background","url(" + a + ")");
+		$("body").css("background-size","100%");
+		
+		$("#messages").css("width",parseInt($("form").css("width")) + 20);
+		$("#messages").css("border-bottom","none")
+		
+		$("#u").val(m);
+		
+		screenAd();
+		
+	}
+	
+	setTimeout(checkBack, 600);
+	
+	//チャットとプレイリストのウィンドウサイズを画面に合わせるための関数
+	$(window).resize(function() {
+		var h = (88 + (window.innerHeight - parseInt($("form").css("top")))) + parseInt($("#frame").css("height"));
+		//128
+		$("table").css("height",window.innerHeight - h);
+		$("#messages").css("height",window.innerHeight - 59); //76
+		
+	});
+	
+	//これも同じく画面に合わせるための関数（手動用）
+	function screenAd() {
+		//var h = 128 + parseInt($("#frame").css("height"));
+		var h = (73 + (window.innerHeight - parseInt($("form").css("top")))) + parseInt($("#frame").css("height"));
+		
+		$("table").css("height",window.innerHeight - h);
+		//$("#messages").css("height",window.innerHeight - (22 + (window.innerHeight -parseInt($("form").css("top")))));
+		
+		$("#messages").css("height",window.innerHeight - 57);
+		$("#messages").css("width",parseInt($("form").css("width")) + 20);
+		$("#form").css("width",$("#messages").css("width") - 10);
+		
+	}
+	
+	//ヘルプ画面を閉じる
+	function closeHelp() {
+		$(".shade").css("display","none");
+		document.cookie = ("help=1");
+		document.cookie = ("ver=" + version); //現バージョンがここに入るよ
+			
+	}
+	
+	//ヘルプ画面を表示
+	function showHelp() {
+		$(".shade").css("display","inherit");
+		document.cookie = ("help=0");
+		
+	}
+	
+	//見つかっているバグリストを表示する関数たち
+	function showBug() { $(".bug").css("display","inherit");}
+	function closeBug() { $(".bug").css("display","none");}
+	
+	//壁紙を変える関数
+	function changeBack() {
+		var img = prompt("壁紙にしたい画像のURLを入力！");
+		if (img == null || img == "") {
+			return;
+		
+		}
+		
+		$(".playlist_left").css("background-color","rgba(200, 200, 200, 0.4)");
+		$("body").css("background-image","url(" + img + ")");
+		$("body").css("background-size","100%");
+		
+		document.cookie = ("back=" + img);
+		
+	}
+	
+	
+		
+		//動画を管理者と同期する関数
+	function sync_v() {
+		if (admin == 1 && nowP != 0) {
+			var time = document.getElementById("player").currentTime;
+			var dat = (nowP + ":" + time + ":" + sortList());
+			
+			socket.emit("sync_admin", dat);
+			console.log("synced!");
+			check_v();
+			
+		}
+		
+	}
+	
+	//動画をスキップするときの関数
+	function skip_v() {
+		socket.emit('skip');
+		
+	}
+	
+	//プレイリストから動画内容を取り出す
+	function sortList() {
+		var i = 0;
+		var list = [];
+		
+		try {
+		while (i <= ($("#playlist > li").length - 1)) {
+			list += ($("#playlist > li")[i].textContent + "-");
+			i++;
+			
+		}
+		
+		list = list.split("-").pop();
+		list = list.join("-");
+		return list;
+		}
+		
+		catch(e) {
+		list = NaN
+		return list;
+		}
+		
+	}
+	
+	
+	//同期ボタンの関数。最初に行ったことと同じ
+	function sync_vAgain() {
+		locaded = 0;
+		socket.emit('sync_playerStart');
+		
+	}
+	
+	//チャットのログを削除する
+	function remove_messe() {
+		$("#messages").empty();
+		
+	}
+		
+	
+	$(function () {
+		var window_active = "True";
+		var muteS = "False";
+		
+		socket.emit('sync_playerStart');	//最初に動画の再生時間を同期する部分
+		
+		$("#u").change(function () {
+			document.cookie = ("name=" + $("#u").val());
+			
+		});
+		
+		//チャットの通知を送る関数　（※まだ未動作）
+		function noti(msg) {
+			//Push.Permission.request();
+			
+			if (document.hidden == true) {
+				$("title").html("Plug5K. *"); //タブの名前を変える
+				/*
+				Push.create("Plug5k", {
+					body: msg,
+					timeout: 4000,
+					onClick: function () {
+					window.focus();
+					this.close();
+					
+					}
+					
+					
+				});*/
+			
+				function check_tab() {
+					if (document.hidden == false) {
+						$("title").html("Plug5K. (β:" + version + ")"); //ここでもとの名前に戻す
+						console.log("fixed");
+						return;
+						
+					}
+					console.log("tab checking...");
+					setTimeout(check_tab, 1000);
+				
+				}
+				
+				check_tab();
+			
+			}
+			
+		}
+		
+		
+		// ここ通知用の関数（今は使わない）
+		function muteP() {
+			console.log("Mute関数");
+			
+			if (mute == "True") {
+				var muteS = "False";
+				document.getElementById("mute_but").innerHTML = ("<input type=\"Button\" value=\"通知: OFF\" onclick=\"muteP()\">");
+				
+			} else {
+				var muteS = "True";
+				document.getElementById("mute_but").innerHTML = ("<input type=\"Button\" value=\"通知: ON\" onclick=\"muteP()\">");
+				
+			}
+			
+		}
+		
+		
+		//アップデートの通知を受けたときの部分
+		socket.on('update', function () {
+			if (!admin) {
+				alert("Plug5Kが更新されたよ！\nブラウザを更新しよう！");
+				
+			}
+			
+		});
+		
+		socket.on('sync_adminStart', function () {
+			sync_v();
+			
+		});
+		
+		//チャット用の関数 (※YouTubeのURLの変換もここ)
+		$('form').submit(function(){
+			//ユーザ名の取得
+			var namae = $("#u").val();
+			if (namae == "Admin" && admin != 1) { //他人がAdminと名乗っていたらとばす部分
+				alert("お前Adminちゃうやろ");
+				return false;
+				
+			}
+			
+			//入力欄の取得
+			var messe = (namae + "： " + $('#m').val());
+			
+			//チャットのメッセージが140文字以上だったら
+			if (messe.length > 140) {
+				alert("メッセージが長すぎます！140文字以内にしてください！");
+				return false;
+				
+			}
+			
+			//入力欄が空だったら
+			if ($("#m").val() == "") {
+				alert("入力欄が空です。");
+				return false;
+				
+			}
+			
+			//入力したものがYouTubeもURLかどうかを判別
+			var urlcheck = messe.indexOf("youtube");
+			
+			//入力したものがYouTubeのURLだったかどうか
+			if (urlcheck == -1) {
+				// --------------------------------------------------------------------------------------
+				//パスワードはUTF-8エンコーディング
+				var secret_passphrase = CryptoJS.enc.Utf8.parse('plug');
+				//alert(secret_passphrase.toString(CryptoJS.enc.Utf8));
+				var salt = CryptoJS.lib.WordArray.random(128 / 8);
+				var key128Bits500Iterations =
+				CryptoJS.PBKDF2(secret_passphrase, salt, {keySize: 128 / 8, iterations: 500 });
+				//初期化ベクトル（ブロック長と同じ）
+				var iv = CryptoJS.lib.WordArray.random(128 / 8);
+				//暗号化オプション（IV:初期化ベクトル, CBCモード, パディングモード：PKCS7
+				var options = {iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7};
+				//暗号化内容のエンコーディングは「UTF-8」
+				var message_text = CryptoJS.enc.Utf8.parse(messe);
+
+    //----------------------------------------------------------------------
+    //暗号化
+    var encrypted = CryptoJS.AES.encrypt(message_text, key128Bits500Iterations, options);
+    //----------------------------------------------------------------------
+
+				//暗号結果データをカンマ（","）で結合してまとめる（復号時にわかるように）
+				//（salt + iv + ciphertext)
+				var binary_data = CryptoJS.enc.Hex.stringify(salt);
+				binary_data += (',' + CryptoJS.enc.Hex.stringify(iv));
+				binary_data += (',' + encrypted);
+				// --------------------------------------------------------------------------------------
+				
+				//そうでなければ普通にメッセージとして送信
+				socket.emit('chat message', binary_data);
+				$('#m').val('');	
+				
+				return false;
+				
+			} else {
+				//そうであればURLのIDの部分だけを抽出して送信
+				var url_sp = messe.split("=");
+				var url_sp2 = url_sp[1];
+				var url_sp3 = url_sp2.split("&");
+				
+				var messe = url_sp3[0];
+				console.log(messe);
+				
+				//動画IDを送信
+				socket.emit('sendurl', messe);
+				$('#m').val('');
+				return false;
+				
+			}
+			
+		});
+		
+		//メッセージを受信して出力をする部分。
+		socket.on('receive_messe', function(msg) {
+			// -----------------------------------------------------------------------------------------------------
+			// あからじめ仕込んでおいた暗号化データのカンマ","を使って文字列をそれぞれに分割
+			var array_rawData = msg.split(',');
+
+			var salt = CryptoJS.enc.Hex.parse(array_rawData[0]);  // パスワードSalt
+			try{var iv = CryptoJS.enc.Hex.parse(array_rawData[1]);   // 初期化ベクトル（IV）
+			var encrypted_data = CryptoJS.enc.Base64.parse(array_rawData[2]);} catch(e) {return;}  //暗号化データ本体
+			
+			//パスワード（鍵空間の定義）
+			var secret_passphrase = CryptoJS.enc.Utf8.parse('plug');
+			var key128Bits500Iterations =
+			CryptoJS.PBKDF2(secret_passphrase, salt, {keySize: 128 / 8, iterations: 500 });
+
+			//復号オプション（暗号化と同様）
+			var options = {iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7};
+
+			//復号
+			var decrypted = CryptoJS.AES.decrypt({"ciphertext":encrypted_data}, key128Bits500Iterations, options);
+			// 文字コードをUTF-8にする
+			msg = (decrypted.toString(CryptoJS.enc.Utf8));
+			console.log(msg);
+			// -----------------------------------------------------------------------------------------------------
+			
+			if ((msg.indexOf("http://") == -1) && (msg.indexOf("https://") == -1)) {
+				var numM = document.getElementById("messages").childElementCount;
+				var w = (parseInt($("#messages").css("height")) + 8) / (parseInt($("#messages > li").css("height")) + 10);
+				var i = ($("#messages > li").css("height") + 20);
+				
+				if (((parseInt(i) + 10) * numM) >= parseInt($("#messages").css("height")) - (2 * parseInt(i))) {
+					$('#messages > li')[0].remove();
+					console.log(((parseInt(i) + 10) * numM));
+					
+				}
+				
+				console.log("メッセージの縦幅の平均:" + Math.floor(w));
+				if (msg.indexOf("Admin") != -1) {
+					$('#messages').append($('<li style="color:lightsalmon">').text(msg));
+					
+				} else if (msg.indexOf("console") != -1) {
+					$('#messages').append($('<li style="color:#0099FF; -webkit-text-stroke:0.2px #999;">').text(msg));
+					
+				} else {
+					$('#messages').append($('<li>').text(msg));
+					
+				}
+				
+				if (msg.indexOf("console") == -1) {
+					noti(msg);
+					
+				}
+				
+			} else {
+				var nam = msg.split(":")[0];
+				var url = msg.split(":")[1]; //+ ":" + msg.split(":")[2];
+				
+				$('#messages').append("<li>" + nam + ":<a target=\"_blank\" href=\"" + url + "\">" + url + "</a></li>");
+				
+			}
+			/*
+			var element = document.getElementById("messages");  //チャットで自動スクロールをする部分
+			var positionY = element.offsetTop; // 変更点
+			element.scrollTo(0, positionY);
+			*/
+			
+		});
+		
+		
+		//参加中の人数表示、チャットへのログの出力
+		socket.on('sankatyuu', function(pl) {
+			document.getElementById("stat").innerHTML = (pl + "人");
+			
+			//人数が増えているか減っているかでコンソールよりログを出力
+			if (plBefore < pl) {
+				//socket.emit('chat message', "console: <<<ユーザーが接続>>>");
+				socket.emit('chat message', "027f2b692b2fb718eba078690aa0db3f,c6ceb6355c49a510adffcd63d928d0bf,IjjNJ++26Ek45hWbipGxq/VkyoUBMhw2eaUkGQ4ihoq2F16afaQulHpAg+nbgqCz");
+				
+			} else {
+				//socket.emit('chat message', "console: >>>ユーザーが切断<<<");
+				socket.emit('chat message', "e9b938bfb169726369427514f61ffe48,1a16f3cb50a556fd12d2ece94498910b,08/fFGepcP46Vs12/iRWjSFB2BINxzMHFJOnAt1e/7DZ/Jw89jyf5bPPmpeEyM8m");
+				
+			}
+			
+			plBefore = pl;
+				
+			if (location.host.indexOf("localhost") != -1 && loaded != 1) {
+				admin = 1;
+				b = document.cookie.split(";"); //クッキーを;でスプリットしたリスト
+				c = 0; //リストを周回するようの変数
+		
+				try {
+				while (b.length >= c) {
+					if (b[c].indexOf("dur") != -1) {
+						var v = document.getElementById("player");
+						v.currentTime = b[c].split("=")[1];
+						break;
+				
+					}
+			
+				c++;
+				
+				}
+				}
+				catch (e) {
+					//なにもしないよ
+				}
+				
+				c = 0;
+				
+				try {
+				while (b.length >= c) {
+					if (b[c].indexOf("src") != -1) {
+						var v = document.getElementById("player");
+						document.getElementById("player").innerHTML = ("<source id=\"url\" src=\"" + url + "\" type=\"video/mp4\">");
+						break;
+				
+					}
+			
+				c++;
+				
+				}
+				}
+				
+				catch (e) {
+					//なにもしないよ
+				}
+				
+				loaded = 1;
+				sync_v();
+				
+			}
+				
+			if (admin != 1) {
+				$(".skipB").removeAttr("onClick");
+				$(".skipB").css("background-color","gray");
+				
+			}
+			
+			
+		});
+		
+		//YouTubeの動画を埋め込む部分
+		socket.on("receiveurl", function(url){
+			if (nowP == 0) {
+				document.getElementById("player").innerHTML = ("<source id=\"url\" src=\"http://fmt.educdn.com/vs.php?id=" + url + "\" type=\"video/mp4\">");
+				document.getElementById("player").currentTime = 0;
+				$('#messages').append($('<li style="color:#0099FF; -webkit-text-stroke:0.2px #000">').text("console： --- " + url + " を再生中... ---"));
+				
+				function checkV() {
+					if (isNaN(document.getElementById("player").duration)) {
+						socket.emit('chat message', "bad3bb01fedbd86bc9ff5f63064fb030,8bda58ff5d34854c5171e4ab983ecda6,yYWOu6/4OX8qUJXqDzf6kU7Tj6j71rZSrjwqZFLRgZ+fiWJL9Rpj92asLrvtB4so");
+						return false;
+					
+					}
+					
+					screenAd();
+					
+				}
+				
+				setTimeout(checkV,3000);
+				
+				console.log("inserted");
+				screenAd();
+				nowP = url;
+				
+			} else {
+					$("#playlist").append($("<li style='-webkit-text-stroke:0.2px #fff;'>").text(url));
+					console.log("waitlist added");
+					
+			}
+			
+		});
+		
+		//動画の再生している時間をユーザーが同期（ココクッソ大事）
+		socket.on("sync_player", function(dat) {
+			if (admin != 1) {
+				var vid = document.getElementById("player");
+				var f = dat.split(":")[0]; //動画のID
+				var r = dat.split(":")[1]; //動画の再生Ⅰ位置
+				var a = dat.split(":")[2]; //プレイリストのデータ
+				var m = 0;
+				var e;
+				
+				if (!(isNaN(a))) {
+					while (m < a.split("-").length) {
+						$("#playlist").append($("<li>").text(a.split("-")[m]));
+						m++;
+						
+					}
+					
+				}
+				
+				//vid.currentTime = r + 17;
+				vid.innerHTML = ("<source src=\"http://fmt.educdn.com/vs.php?id=" + f + "\" type=\"video/mp4\">");
+				loaded = 1;
+				nowP = f;
+				document.getElementById("player").currentTime = r;
+				
+				console.log("player loaded");
+				check_v();
+				
+			}
+			
+		});
+		
+		//管理者による動画のスキップ
+		socket.on('skip', function () {
+			var P = document.getElementById("player");
+			
+			if (!(isNaN(P.duration))) {
+				P.currentTime = P.duration;
+				
+			} else {
+				var v = document.getElementById("player");
+				var i = $("#playlist").html();
+				var d = i.split("<li>");
+				var e = d[1].split("</li>");
+				var o = e[0];
+				
+				nowP = 0;
+				
+				v.innerHTML = ("<source src=\"http://fmt.educdn.com/vs.php?id=" + o + "\" type=\"video/mp4\">");
+				v.load();
+				$('#messages').append($('<li style="color:#0099FF; -webkit-text-stroke:0.2px #000">').text("console： --- " + o + " を再生中... ---"));
+				nowP = 0;
+				$('#playlist > li')[0].remove();
+				console.log("video refreshed");
+				v.currentTime = 0;
+				
+				function checkV() {
+					if (isNaN(document.getElementById("player").duration)) {
+						socket.emit('chat message', "bad3bb01fedbd86bc9ff5f63064fb030,8bda58ff5d34854c5171e4ab983ecda6,yYWOu6/4OX8qUJXqDzf6kU7Tj6j71rZSrjwqZFLRgZ+fiWJL9Rpj92asLrvtB4so");
+						return false;
+					
+					}
+					
+					screenAd();
+					
+				}
+				
+				setTimeout(checkV,3000);
+				
+			}
+			
+			nowP = 0;
+			
+		});
+		
+		
+		//動画の再生が終わったかを確認
+		function check_v() {
+			try //変数が用意できないときのためのエラーハンドラ
+			{
+			var v = document.getElementById("player");
+			var i = $("#playlist").html();
+			var d = i.split("<li>");
+			var e = d[1].split("</li>");
+			var o = e[0];
+			}
+			
+			catch (e) 
+			{
+			//処理をスキップ
+			}
+			
+			if (v.currentTime == v.duration) {	//動画の再生が終わったとき
+				nowP = 0;
+				
+				try { //プレイリストから動画を抽出して再生
+				v.innerHTML = ("<source src=\"http://fmt.educdn.com/vs.php?id=" + o + "\" type=\"video/mp4\">");
+				v.load();
+				nowP = o;
+				$('#playlist > li')[0].remove();
+				console.log("video refreshed");
+				v.currentTime = 0;
+				}
+			
+				catch (e) {
+				nowP = 0;
+				}
+					
+			}	
+			
+			document.getElementById("duration").innerHTML = ("再生時間: " + Math.floor(v.currentTime)　+ " / " + Math.floor(v.duration) + " 秒"); //動画の再生位置を表示
+			
+			if (admin == 1) {　//Admin用
+				document.cookie = "dur=" + v.currentTime;
+				document.cookie = "src=" + $("#url").attr("src");
+				
+			}
+			
+		}
+		
+		//Adminからユーザーに動画やその他の情報を転送するための関数
+		function sync_v() {
+		if (admin == 1 && nowP != 0) {
+			var time = document.getElementById("player").currentTime;
+			var his = [];
+			for (var i=0; i<6; i++) {
+				his += $('#messages > li')[i].outerHTML;
+				
+			}
+			
+			console.log(his);
+			
+			var dat = (nowP + ":" + time + ":" + sortList());
+			
+			socket.emit("sync_admin", dat);
+			console.log("synced!");
+			check_v();
+			
+		}
+		
+	}	
+		
+		/*
+		socket.on("sync_playerStart", function() {
+			sync();
+			
+		});*/
+		
+		//コンソール出力用
+		/* -------------------------------------------------------------------------------------------- */
+		
+		console.log("%c！　警告　！\n", "color:red; font-size:32px;");
+		console.log("%cあなた自身がよくわからないコードは貼り付けないでください！", "color:green; font-size:24px;");
+		console.log("%cこのサイト余裕で乗っ取れるけどな！", "color:green; font-size:24px;");
+		
+		/* ------------------------------------------------------------------------------------------ */
+		
+		
+		setInterval(check_v, 1000);			//ここで関数を1秒ごとに繰り返す
+	});
+	
+	
+	
+	</script>
 	
   </head>
   
@@ -80,21 +914,30 @@ Made by: Alex.nfo
 <div class="setumei">
 <button style="width:50px; height:50px; border-radius:10px;" onClick="closeHelp()"><img style="float:right" src="https://image.flaticon.com/icons/svg/463/463065.svg"></button><br><br>
 <br><h2>Welcome!</h2>
-ver: beta18<br><br> <!-- ここがバージョン -->
+ver: beta20<br><br> <!-- ここがバージョン -->
 Plug.5Kへようこそ！<br>
 動画をみんなで見て感動を共有しよう！<br>
 ※※Firefox推奨※※<br>
 ・YouTubeのURLを送信することで自動的に再生するよ！<br>
 ・それ以外のURLでもワンクリックでアクセスできるよ！<br>
 ・楽しいよ！<br>
+<br>
 
 <hr style="width:70%;"><br>
 <!-- ここからアプデ履歴 -->
 <div class="his" style="height:45%; overflow-y:scroll;">
 --- アップデート履歴 ---<br>
+#beta20# (7/31)<br>
+・スクリプトの読み込みを爆速にしたよ！ 約1.8s → 約1.2s<br>
+・サーバー側からIPアドレスとUAがわかるようになったよ！（悪いことをしてもわかるよ！）<br>
+・ウィンドウサイズを変えたときにチャットの幅が変わらないのを修正。<br>
+<br>＊＊＊多分これが最終更新＊＊＊<br><br><hr>
+<br>
+#beta19# (7/10)<br>
+・チャットウィンドウを完全に隙間なく埋めたよ！（？）<br>
+<br>
 #beta18# (7/3)<br>
 ・他のタブにいるときにタブに"*"を付けて通知がわかるようにしたよ！(slackと同じ!)<br>
-・画面サイズの最低動作サイズを指定したよ！（これより小さいと警告されるよ サイズ：1066x638 ）<br>
 ・壁紙バグがまたまたあったので修正。<br>
 ・文字の色を一部修正。（見えにくかったろ）<br>
 <br>
@@ -210,7 +1053,7 @@ Plug.5Kへようこそ！<br>
 	
 	<table>
 	<tr>
-	  <button class="helpB" style="margin-right:5%;" onClick="showHelp()"><img style="width:100%; height:100%" src="https://image.flaticon.com/icons/svg/771/771599.svg"></button>
+	  <button class="helpB" style="margin-right:67%;" onClick="showHelp()"><img style="width:100%; height:100%" src="https://image.flaticon.com/icons/svg/771/771599.svg"></button>
 	  <button class="skipB" style="margin-right: 8px" onClick="skip_v()"><abbr title="動画をスキップするよ！（Admin限定）"><img style="width:100%; height:100%" src="https://image.flaticon.com/icons/svg/702/702134.svg"></abbr></button>
 	  <button class="backB" style="margin-right:8px;" onclick="changeBack()"><abbr title="Plug5Kの壁紙をURLで設定できるよ！"><img style="width:100%; height:100%" src="https://image.flaticon.com/icons/svg/685/685660.svg"></abbr></button>
 	  <button class="syncB" style="margin-right:8px;" onClick="sync_vAgain()"><abbr title="動画をもう一度同期するよ！"><img style="width:100%; height:100%" src="https://image.flaticon.com/icons/svg/591/591914.svg"></abbr></button>
