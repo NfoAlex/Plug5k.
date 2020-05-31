@@ -1,0 +1,24 @@
+{
+  "name": "plug5k",
+  "version": "1.0.0",
+  "description": "chat and videos",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.15.2",
+    "socket.io": "^2.1.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NfoAlex/Plug5k..git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NfoAlex/Plug5k./issues"
+  },
+  "homepage": "https://github.com/NfoAlex/Plug5k.#readme"
+}
